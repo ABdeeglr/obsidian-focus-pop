@@ -2,11 +2,26 @@ import { App, Editor, MarkdownView, Modal, Notice, Plugin, TFile } from 'obsidia
 import { FocusPopSettings, DEFAULT_SETTINGS } from 'focusPopSettingTab';
 import FocusPopSettingTab from 'focusPopSettingTab';
 import { createAudioManager } from 'audiomgr';
+import { NoticeModal, create_notice_documentfragment } from 'modal_styles';
 
+/**
+ * 计时器状态
+ * 负责标注计时器的状态
+ */
 const enum timer_status {
   "ready",
   "running",
   "pause"
+}
+
+/**
+ * 音频播放类型
+ * 负责描述在哪个时间点播放的音频
+ */
+const enum audio_type {
+  "on_interval_start",
+  "on_interval_end",
+  "on_long_interval"
 }
 
 export default class FocusPop extends Plugin {
@@ -27,10 +42,13 @@ export default class FocusPop extends Plugin {
   SBI_concentration_lasting: HTMLElement;
 
 
-
+  /**
+   * ==具体行为型函数== 其行为是软件功能的重要组成部分
+   * 
+   * 插件入口
+   */
   async onload() {
     await this.loadSettings();
-    // await this.update_audio_urls();
     this.audio_mgr = createAudioManager();
 
     /***********************************
@@ -39,10 +57,18 @@ export default class FocusPop extends Plugin {
      **                               **
      **********************************/
 
-    
-    /**
-     * ==SCHEDULED==
-     */
+    // ! TEST
+    // 测试按钮
+    const ribbonIconEl_test = this.addRibbonIcon('phone-call', 'DF样式测试', (evt: MouseEvent) => {
+      const g = create_notice_documentfragment('确定了，就在刚刚！', '费里皮得斯对着人群大喊一声，然后死了。')
+      new Notice(g, 0);
+    });
+    ribbonIconEl_test.addClass('focus-pop-ribbon-class');
+
+
+    // 添加开始专注按钮
+    // 开始或恢复专注状态
+    // ==具体行为型函数== 其行为是软件功能的重要组成部分
     const ribbonIconEl_start = this.addRibbonIcon('play', '开始专注', (evt: MouseEvent) => {
       if (this.status === timer_status.ready) {
         this.transaction_from_ready_to_running();  
@@ -59,9 +85,9 @@ export default class FocusPop extends Plugin {
     });
     ribbonIconEl_start.addClass('focus-pop-ribbon-class');
 
-    /**
-     * ==SCHEDULED==
-     */
+    // 添加暂停专注按钮
+    // 暂停专注状态
+    // ==具体行为型函数== 其行为是软件功能的重要组成部分
     const ribbonIconEl_pause = this.addRibbonIcon('pause', '停止计时', (evt: MouseEvent) => {  
       if (this.status === timer_status.running) {
         this.transaction_from_running_to_pause();
@@ -75,9 +101,9 @@ export default class FocusPop extends Plugin {
     });
     ribbonIconEl_pause.addClass('focus-pop-ribbon-class');
 
-    /**
-     * ==SCHEDULED==
-     */
+    // 添加终止专注按钮
+    // 结束专注状态
+    // ==具体行为型函数== 其行为是软件功能的重要组成部分
     const ribbonIconEl_stop = this.addRibbonIcon('circle-power', '结束专注', (evt: MouseEvent) => {
 
       if (this.status === timer_status.running) {
@@ -103,7 +129,7 @@ export default class FocusPop extends Plugin {
      **                               **
      **********************************/
 
-    // This adds a status bar item to the bottom of the app. Does not work on mobile apps.
+    // 初始化状态栏，移动端不支持状态栏
     this.SBI_concentration_status = this.addStatusBarItem();
     this.SBI_concentration_status.setText('专注状态: 尚未开始');
 
@@ -111,14 +137,16 @@ export default class FocusPop extends Plugin {
     this.SBI_concentration_lasting.setText('已专注: 00:00:00');
 
     /**
-     * ==TODO== 需要监测专注时长到达 90 分钟，并编写对应的事件 
+     * TODO
+     * 
+     * 需要监测专注时长到达 90 分钟，并编写对应的事件 
      */
     this.registerInterval(
       window.setInterval(() => {
         this.update_SBI_concentration_lasting();
         if (this.concentration_deposit_time + Math.floor((Date.now() - this.last_transaction_time) / 1000) >= 90 * 60) {
           new Notice('专注时长已经到达 90 分钟！', 10000);
-          // --TODO--
+          // TODO
         }
       }, 1000)
     );
@@ -129,23 +157,31 @@ export default class FocusPop extends Plugin {
      **                               **
      **********************************/
 
-    // This adds a simple command that can be triggered anywhere
+    // 添加一个 Obsidian 命令，以后可以完善
+    // TODO
+    // 展示专注习惯数据的可视化统计
     this.addCommand({
       id: 'open-sample-modal-simple',
-      name: '展示专注统计',
+      name: '专注统计',
       callback: () => {
-        new ConcentrationStaticModal(this.app).open();
+        // new ConcentrationStaticModal(this.app).open();
+        // TODO
       }
     });
 
+    // 测试
+    // 添加一个 Obsidian 命令
+    // TODO
     this.addCommand({
-      id: 'test-play-audio',
-      name: '测试音频播放',
+      id: 'test-modal-behavior',
+      name: '点这个模态预览测试',
       callback: () => {
-        this.play_audio_right_now();
+        new NoticeModal(this.app, '你好！', '世界！').open();
       }
     })
 
+    // Obsidian 官方预留，添加一个 Obsidian 命令，以后可以完善
+    // !TO-BE-DELETE-OR-CHANGE
     // This adds an editor command that can perform some operation on the current editor instance
     this.addCommand({
       id: 'sample-editor-command',
@@ -156,6 +192,8 @@ export default class FocusPop extends Plugin {
       }
     });
 
+    // Obsidian 官方预留，添加一个 Obsidian 命令，以后可以完善
+    // !TO-BE-DELETE-OR-CHANGE
     // This adds a complex command that can check whether the current state of the app allows execution of the command
     this.addCommand({
       id: 'open-sample-modal-complex',
@@ -177,31 +215,44 @@ export default class FocusPop extends Plugin {
     });
 
 
-    /***********************************
-     **                               **
-     **            其他               **
-     **        目前行为不明            **
-     **                               **
-     **********************************/
 
+    // 添加第三方插件配置页面
     // This adds a settings tab so the user can configure various aspects of the plugin
     this.addSettingTab(new FocusPopSettingTab(this.app, this));
 
+    // Obsidian 官方提供，目前行为不明，建议别动
+    // !TO-BE-DELETE-OR-CHANGE
     // If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
     // Using this function will automatically remove the event listener when this plugin is disabled.
     this.registerDomEvent(document, 'click', (evt: MouseEvent) => {
       console.log('click', evt);
     });
 
+    // Obsidian 官方提供，目前行为不明，建议别动
+    // 大概是注册一个周期性触发事件
+    // !TO-BE-DELETE-OR-CHANGE
     // When registering intervals, this function will automatically clear the interval when the plugin is disabled.
     this.registerInterval(window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000));
   }
+
+  /***********************************
+   **                               **
+   **       Plugin on unmount       **
+   **                               **
+   **********************************/
 
   onunload() {
     if (this.audio_mgr != null) {
       this.audio_mgr.destroy();
     }
   }
+
+  /***********************************
+   **                               **
+   **       Plugin Settings         **
+   **                               **
+   **********************************/
+
 
   async loadSettings() {
     this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
@@ -211,25 +262,6 @@ export default class FocusPop extends Plugin {
     await this.saveData(this.settings);
   }
 
-  /**
-   * 在设置变更后更新音频 URL
-   */
-  // async update_audio_urls() {
-  //   console.log(this.settings.audio_played_on_interval_start);
-  //   const audio1 = this.get_audio_url_by_settings_item(this.settings.audio_played_on_interval_start);
-  //   console.log(audio1);
-
-  //   console.log(this.settings.audio_played_on_interval_end);
-  //   const audio2 = this.get_audio_url_by_settings_item(this.settings.audio_played_on_interval_end);
-  //   console.log(audio2);
-
-
-  //   console.log(this.settings.audio_played_on_long_interval);
-  //   const audio3 = this.get_audio_url_by_settings_item(this.settings.audio_played_on_long_interval);
-  //   console.log(audio3);
-
-  //   this.audio_urls = [audio1, audio2, audio3];
-  // }
 
   /***********************************
    **                               **
@@ -238,7 +270,11 @@ export default class FocusPop extends Plugin {
    **********************************/
 
   /**
+   * ==具体行为型函数== 其行为是软件功能的重要组成部分
+   * 
    * 在就绪状态下按下开始按钮
+   * 
+   * 开始专注状态
    */
   transaction_from_ready_to_running() {
     console.log(`状态转移: ${this.status} -> ${timer_status.running}`);
@@ -253,7 +289,11 @@ export default class FocusPop extends Plugin {
 
 
   /**
+   * ==具体行为型函数== 其行为是软件功能的重要组成部分
+   * 
    * 在专注状态下按下暂停按钮
+   * 
+   * 暂停专注状态
    */
   transaction_from_running_to_pause() {
     console.log(`状态转移: ${this.status} -> ${timer_status.pause}`);
@@ -268,7 +308,11 @@ export default class FocusPop extends Plugin {
   }
 
   /**
-   * 在暂停状态下按下专注按钮
+   * ==具体行为型函数== 其行为是软件功能的重要组成部分
+   * 
+   * 在暂停状态下按下开始专注按钮
+   * 
+   * 恢复专注状态
    */
   transaction_from_pause_to_running() {
     console.log(`状态转移: ${this.status} -> ${timer_status.running}`);
@@ -281,7 +325,11 @@ export default class FocusPop extends Plugin {
   }
 
   /**
+   * ==具体行为型函数== 其行为是软件功能的重要组成部分
+   * 
    * 在暂停状态下按下终止按钮
+   * 
+   * 结束专注状态
    */
   transaction_from_pause_to_ready() {
     console.log(`状态转移: ${this.status} -> ${timer_status.ready}`);
@@ -299,7 +347,11 @@ export default class FocusPop extends Plugin {
   }
 
   /**
+   * ==具体行为型函数== 其行为是软件功能的重要组成部分
+   * 
    * 在正常运行状态下按下终止按钮
+   * 
+   * 结束专注状态
    */
   transaction_from_running_to_ready() {
     console.log(`状态转移: ${this.status} -> ${timer_status.ready}`);
@@ -322,6 +374,8 @@ export default class FocusPop extends Plugin {
    **********************************/
 
   /**
+   * ==封装型函数== 抽象一部分复杂的行为，以便修改
+   * 
    * 确保 this plugin 能够正确获取到音频文件的 obsidian url
    * @param path_from_settings - 从设置中获取的音频文件路径字符串
    * @returns 
@@ -344,13 +398,15 @@ export default class FocusPop extends Plugin {
   }
 
   /**
+   * ==具体行为型函数== 其行为是软件功能的重要组成部分
+   * 
    * 根据已经专注的时长，当当前状态转移到专注状态时，根据配置文件注册未来的随机提示音时间
    * @param has_been_deposit 已经追加、累积的专注时长，单位（秒）
    */
   play_audio_on_transfer_to_running(has_been_deposit: number) {
-    const audio_url_1 = this.get_audio_url_by_settings_item(this.settings.audio_played_on_interval_start);
-    const audio_url_2 = this.get_audio_url_by_settings_item(this.settings.audio_played_on_interval_end);
-    const audio_url_3 = this.get_audio_url_by_settings_item(this.settings.audio_played_on_long_interval);
+    const audio_url_1 = this.obsidian_audio_url_redirect(audio_type.on_interval_start);
+    const audio_url_2 = this.obsidian_audio_url_redirect(audio_type.on_interval_end);
+    const audio_url_3 = this.obsidian_audio_url_redirect(audio_type.on_long_interval);
     const future_total = Math.floor(Number(this.settings.concentration_lasting)) * 60;
     const to_be_concentrate = future_total - has_been_deposit;
     const interval_min = Math.floor(Number(this.settings.interval_min)) * 60;
@@ -361,6 +417,15 @@ export default class FocusPop extends Plugin {
     this.audio_mgr.playAudio(audio_url_3, to_be_concentrate);    
   }
 
+  /**
+   * ==封装型函数== 抽象一部分复杂的行为，以便修改
+   * 
+   * 将一个时间区间不均匀地分隔开
+   * @param total 时间的总区间长度
+   * @param interval_min 最短间隔（秒）
+   * @param interval_max 最长间隔（秒）
+   * @returns 
+   */
   randomSplit(total:number, interval_min:number, interval_max:number) {
     const result = [];
     let current = 0;
@@ -379,15 +444,62 @@ export default class FocusPop extends Plugin {
 
 
   /**
+   * ==封装型函数== 抽象一部分复杂的行为，以便修改
+   * 
    * 立刻播放提示音，用于专注启动、恢复时的用户感知
    * @param audio_url - 如果不传入参数，则默认播放第一个音频
    * @returns 
    */
-  play_audio_right_now(audio_url = this.get_audio_url_by_settings_item(this.settings.audio_played_on_interval_start)) {
+  play_audio_right_now(audio_url = this.obsidian_audio_url_redirect(audio_type.on_interval_start)) {
     this.audio_mgr.playAudio(audio_url);
   }
 
   /**
+   * ==封装型函数== 抽象一部分复杂的行为，以便修改
+   * 
+   * 根据需要播放的音频类型（枚举类型）来确定实际的Obsidian内部音频地址
+   * @param audio_choosen either "on_interval_start", or "on_interval_end", or "on_long_interval"
+   * @returns audio_url_contructed_by_obsidian
+   */
+  obsidian_audio_url_redirect(audio_choosen: audio_type):string {
+
+    let target_url: string;
+    switch (audio_choosen) {
+      case audio_type.on_interval_start:
+        target_url = this.get_audio_url_by_settings_item(this.settings.audio_played_on_interval_start);
+        if (target_url == null) 
+          {
+            new Notice('No Audio Configurated.', 1500);
+            return null;
+          }
+        else return target_url;
+        break;
+      case audio_type.on_interval_end:
+        target_url = this.get_audio_url_by_settings_item(this.settings.audio_played_on_interval_end);
+        if (target_url == null) 
+          {
+            new Notice('No Audio Configurated.', 1500);
+            return null;
+          }
+        else return target_url;
+        break;
+      case audio_type.on_long_interval:
+        target_url = this.get_audio_url_by_settings_item(this.settings.audio_played_on_long_interval);
+        if (target_url == null) 
+          {
+            new Notice('No Audio Configurated.', 1500);
+            return null;
+          }
+        break;
+      default:
+        console.log('Error audio rediect url.');
+        return null;
+    }
+  }
+
+  /**
+   * ==封装型函数== 抽象一部分复杂的行为，以便修改
+   * 
    * 在暂停或结束专注时，清空音频播放内容
    */
   stop_all_audios_on_terminate_or_pause() {
@@ -396,6 +508,8 @@ export default class FocusPop extends Plugin {
   }
 
   /**
+   * ==封装型函数== 抽象一部分复杂的行为，以便修改
+   * 
    * @returns 返回当前状态的字符串表示
    */
   status_to_string() : string {
@@ -409,11 +523,20 @@ export default class FocusPop extends Plugin {
   }
 
 
-
+  /**
+   * ==封装型函数== 抽象一部分复杂的行为，以便修改
+   * 
+   * 更新状态栏的专注状态
+   */
   update_SBI_concentration_status() {
     this.SBI_concentration_status.setText(`专注状态: ${this.status_to_string()}`);
   }
 
+  /**
+   * ==封装型函数== 抽象一部分复杂的行为，以便修改
+   * 
+   * 更新状态栏中的专注计时
+   */
   update_SBI_concentration_lasting() {
     if (this.status == 0 || this.status == 2) {
       this.SBI_concentration_lasting.setText(`已专注: ${this.time_format(this.concentration_deposit_time)}`);
@@ -426,6 +549,14 @@ export default class FocusPop extends Plugin {
     }
   }
 
+  /**
+   * ==封装型函数== 抽象一部分复杂的行为，以便修改
+   * 
+   * 将时间间隔长度变成可读性更高时间字符串。例如：90 => '00:01:30'
+   * 
+   * @param seconds 时间间隔长度（秒）
+   * @returns 可读性更高的时间字符串
+   */
   time_format(seconds: number) : string {
     const hrs = Math.floor(seconds / 3600);
     const mins = Math.floor((seconds % 3600) / 60); 
@@ -433,33 +564,62 @@ export default class FocusPop extends Plugin {
     return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   }
 
+  /**
+   * ==封装型函数== 抽象一部分复杂的行为，以便修改
+   * 
+   * 更新实例属性 last_transaction_time, 记录最新的状态转移发生的时刻
+   */
   update_last_transaction_time() {
     this.last_transaction_time = Date.now();
   }
 
+  /**
+   * ==封装型函数== 抽象一部分复杂的行为，以便修改
+   * 
+   * 更新实例属性 concentration_deposit_time，代表某个专注周期中已累计的专注时长
+   * @param seconds 
+   */
   set_concentration_deposit_time(seconds: number) {
     this.concentration_deposit_time = seconds;
   }
 
+  /**
+   * ==封装型函数== 抽象一部分复杂的行为，以便修改
+   * 
+   * 更新实例属性 concentration_deposit_time，将其重置为 0
+   * 
+   * 通常在结束专注状态的状态转移函数中被调用
+   */
   reset_concentration_deposit_time() {
     this.concentration_deposit_time = 0;
   }
 
+  /**
+   * ==封装型函数== 抽象一部分复杂的行为，以便修改
+   * 
+   * 更新实例属性 concentration_deposit_time，追加某个专注周期中已累计的专注时长
+   * 
+   * 通常在暂停专注状态的状态转移函数中被调用
+   */
   append_concentration_deposit_time() {
     const now = Date.now();
     const delta = Math.floor((now - this.last_transaction_time) / 1000);
     this.set_concentration_deposit_time(this.concentration_deposit_time + delta);
   }
 
+  
   /**
-   * **UNFINISHED** 等待以后更新
-   * 上传专注习惯数据
+   * TODO
+   * 等待以后更新, 本地保存专注习惯数据
    */
   upload_concentrating_habit_data() {
     console.log('（暂时什么都不做）上传专注习惯数据');
   }
 
   /**
+   * 彩蛋
+   * 
+   * !TO-BE-DELETE-OR-CHANGE
    * 重置调皮指数
    */
   reset_naughtiness_index() {
@@ -476,6 +636,9 @@ export default class FocusPop extends Plugin {
   }
 
   /**
+   * 彩蛋
+   * 
+   * !TO-BE-DELETE-OR-CHANGE
    * 调皮指数+1
    */
   improve_naughtiness_index() {
@@ -501,6 +664,12 @@ export default class FocusPop extends Plugin {
 
 }
 
+/**
+ * 
+ * TODO
+ * 
+ * modal 模态，暂时不要动
+ */
 class ConcentrationStaticModal extends Modal {
   constructor(app: App) {
     super(app);
@@ -509,8 +678,6 @@ class ConcentrationStaticModal extends Modal {
   onOpen() {
     const { contentEl } = this;
     contentEl.setText('专注总时间：199.2 小时\n\n\n\n专注次数：132 次');
-    // contentEl.setText('专注总时间：199.2 小时\n\n专注次数：132 次<br/>打断次数：18 次<br/>专注成功率: 19%</p></div>');
-
   }
 
   onClose() {

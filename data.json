@@ -1,0 +1,10 @@
+{
+  "concentration_lasting": "90",
+  "interval_min": "3",
+  "interval_max": "5",
+  "interval_last": "10",
+  "long_interval_last": "20",
+  "audio_played_on_interval_start": "z-appendix/a.wav",
+  "audio_played_on_interval_end": "z-appendix/z.wav",
+  "audio_played_on_long_interval": "z-appendix/a.wav"
+}
