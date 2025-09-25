@@ -60,7 +60,10 @@ export default class FocusPop extends Plugin {
     // ! DOING
     // 测试按钮
     const ribbonIconEl_test = this.addRibbonIcon('phone-call', 'DF样式测试', (evt: MouseEvent) => {
-      const g = create_notice_documentfragment('确定了，就在刚刚！', '费里皮得斯对着人群大喊一声，然后死了。')
+
+      const head = this.settings.msg1 ?? "Test head";
+      const msg = this.settings.msg2 ?? "Test body";
+      const g = create_notice_documentfragment(head, msg);
       new Notice(g, 0);
     });
     ribbonIconEl_test.addClass('focus-pop-ribbon-class');

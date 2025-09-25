@@ -10,33 +10,27 @@ const STYLES_CSS = `
 }
 
 .tooltip-container {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5em; 
-  padding: 0.75em; 
-  background: #005454; 
-  border: none; 
-  border-radius: inherit; 
+  background: var(--background-secondary-alt);
+  border: 1px solid var(--background-modifer-success);
+  border-radius: var(--radius-l);
+  padding: 1.2em;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .tooltip-title {
-  font-size: 16pt; 
-  font-weight: 200; 
-  color: #feca95; 
-  line-height: var(--line-height-tight);
-  margin: 0;
-  padding: 0;
+  font-family: 'Impact', sans-serif;
+  font-size: var(--font-size-h1);
+  font-weight: 600; 
+  color: var(--text-interface);
+  border: 4px dashed #00FFFF;
+  box-shadow: 0 0 15px rgba(255, 255, 0, 0.7);
 }
 
-.tooltip-body {
-  font-size: 12pt;
-  font-weight: 100;
-  color: #6b6967ff;
+.tooltip-content {
+  font-size: var(--font-size-normal);
+  font-weight: 400;
+  color: var(--text-faint);
   line-height: var(--line-height-tight);
-  margin: 0;
-  padding: 0;
-  word-break: break-word;
-  overflow-wrap: anywhere;
 }
 `;
 
@@ -55,7 +49,7 @@ export function create_notice_documentfragment(title:string, msg:string) {
 
     // 4. 创建内容 div，添加普通样式，并设置文本内容
     const contentDiv = document.createElement('div');
-    contentDiv.classList.add('tooltip-content');
+    contentDiv.classList.add('tooltip-contnet');
     contentDiv.textContent = msg;
 
     // 5. 将标题和内容 div 添加到容器 div 中

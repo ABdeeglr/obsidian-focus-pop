@@ -2,6 +2,10 @@ import FocusPop from "main";
 import { App, Setting, PluginSettingTab } from "obsidian";
 
 export interface FocusPopSettings {
+
+  msg1? : string,
+  msg2? : string,
+
   /**
    * 专注周期时长，单位为分钟，默认 90 分钟
    */
@@ -51,7 +55,9 @@ export const DEFAULT_SETTINGS: FocusPopSettings = {
   long_interval_last : '20', // 长休息时长
   audio_played_on_interval_start : null, // 提示音1
   audio_played_on_interval_end : null, // 提示音2
-  audio_played_on_long_interval : null // 提示音3
+  audio_played_on_long_interval : null, // 提示音3
+  msg1 : "Hello world",
+  msg2 : "Only for font test, 我擦！"
 }
 
 export default class FocusPopSettingTab extends PluginSettingTab {
@@ -66,6 +72,31 @@ export default class FocusPopSettingTab extends PluginSettingTab {
     const { containerEl } = this;
 
     containerEl.empty();
+
+    new Setting(containerEl)
+      .setName('提示信息头')
+      .setDesc('信息提示词的第一部分，简短点')
+      .addText(text => text
+        .setPlaceholder('输入你想要的提示信息')
+        .setValue(this.plugin.settings.msg1)
+        .onChange(async (value) => {
+          this.plugin.settings.msg1 = value;
+          await this.plugin.saveSettings();
+        })
+    );
+
+    new Setting(containerEl)
+      .setName('提示信息体')
+      .setDesc('信息提示词的第二部分')
+      .addText(text => text
+        .setPlaceholder('输入你想要的提示信息')
+        .setValue(this.plugin.settings.msg2)
+        .onChange(async (value) => {
+          this.plugin.settings.msg2= value;
+          await this.plugin.saveSettings();
+        })
+    );
+
 
 
     new Setting(containerEl)
