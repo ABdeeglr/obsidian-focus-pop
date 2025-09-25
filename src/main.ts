@@ -57,7 +57,7 @@ export default class FocusPop extends Plugin {
      **                               **
      **********************************/
 
-    // ! TEST
+    // ! DOING
     // 测试按钮
     const ribbonIconEl_test = this.addRibbonIcon('phone-call', 'DF样式测试', (evt: MouseEvent) => {
       const g = create_notice_documentfragment('确定了，就在刚刚！', '费里皮得斯对着人群大喊一声，然后死了。')
@@ -609,7 +609,7 @@ export default class FocusPop extends Plugin {
 
   
   /**
-   * TODO
+   * TODO --someday maybe--
    * 等待以后更新, 本地保存专注习惯数据
    */
   upload_concentrating_habit_data() {
